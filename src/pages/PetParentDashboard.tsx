@@ -1,19 +1,36 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Heart, MapPin, Clock, Plus, Bell } from "lucide-react";
+import { Calendar, Heart, MapPin, Clock, Plus, Bell, User, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import AddPetModal from "@/components/AddPetModal";
 import TaskDetailsModal from "@/components/TaskDetailsModal";
+import ScheduleCareModal from "@/components/ScheduleCareModal";
+import BookConsultationModal from "@/components/BookConsultationModal";
+import FindWalkerModal from "@/components/FindWalkerModal";
+import NearbyServicesModal from "@/components/NearbyServicesModal";
+import UserSettingsModal from "@/components/UserSettingsModal";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const PetParentDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [showAddPetModal, setShowAddPetModal] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [showScheduleCareModal, setShowScheduleCareModal] = useState(false);
+  const [showConsultationModal, setShowConsultationModal] = useState(false);
+  const [showWalkerModal, setShowWalkerModal] = useState(false);
+  const [showNearbyModal, setShowNearbyModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
 
   const upcomingTasks = [
@@ -28,63 +45,30 @@ const PetParentDashboard = () => {
       icon: Calendar, 
       description: "Set reminders for your pet", 
       color: "from-blue-500 to-blue-600",
-      action: () => handleScheduleCare()
+      action: () => setShowScheduleCareModal(true)
     },
     { 
       title: "Book Consultation", 
       icon: Heart, 
       description: "Connect with a vet", 
       color: "from-red-500 to-red-600",
-      action: () => handleBookConsultation()
+      action: () => setShowConsultationModal(true)
     },
     { 
       title: "Find Walker", 
       icon: MapPin, 
       description: "Book a pet walker", 
       color: "from-green-500 to-green-600",
-      action: () => handleFindWalker()
+      action: () => setShowWalkerModal(true)
     },
     { 
       title: "Nearby Services", 
       icon: Clock, 
       description: "Find shops & clinics", 
       color: "from-orange-500 to-orange-600",
-      action: () => handleNearbyServices()
+      action: () => setShowNearbyModal(true)
     },
   ];
-
-  const handleScheduleCare = () => {
-    toast({ 
-      title: "Schedule Care 📅", 
-      description: "Opening pet care scheduler..." 
-    });
-    // Here you would typically navigate to scheduler page
-    // navigate("/scheduler");
-  };
-
-  const handleBookConsultation = () => {
-    toast({ 
-      title: "Find Veterinarians 🩺", 
-      description: "Searching for available vets in your area..." 
-    });
-    // navigate("/consultation");
-  };
-
-  const handleFindWalker = () => {
-    toast({ 
-      title: "Find Pet Walker 🚶", 
-      description: "Looking for available pet walkers nearby..." 
-    });
-    // navigate("/walker");
-  };
-
-  const handleNearbyServices = () => {
-    toast({ 
-      title: "Nearby Services 📍", 
-      description: "Finding pet shops and clinics in your area..." 
-    });
-    // navigate("/nearby");
-  };
 
   const handleViewTask = (task: any) => {
     setSelectedTask(task);
@@ -95,9 +79,58 @@ const PetParentDashboard = () => {
     setShowAddPetModal(true);
   };
 
+  const handleLogout = () => {
+    toast({ 
+      title: "Logged Out", 
+      description: "You have been successfully logged out" 
+    });
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-orange-500 rounded-full flex items-center justify-center">
+                <Heart className="w-5 h-5 text-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-orange-500 bg-clip-text text-transparent">
+                Paws On Time
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" size="sm" className="relative">
+                <Bell className="w-5 h-5" />
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
+                  3
+                </span>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <User className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => setShowSettingsModal(true)}>
+                    <User className="w-4 h-4 mr-2" />
+                    Account Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Log Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        </div>
+      </nav>
+
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, John! 🐾</h1>
@@ -201,6 +234,26 @@ const PetParentDashboard = () => {
         open={showTaskModal} 
         onOpenChange={setShowTaskModal} 
         task={selectedTask}
+      />
+      <ScheduleCareModal 
+        open={showScheduleCareModal} 
+        onOpenChange={setShowScheduleCareModal} 
+      />
+      <BookConsultationModal 
+        open={showConsultationModal} 
+        onOpenChange={setShowConsultationModal} 
+      />
+      <FindWalkerModal 
+        open={showWalkerModal} 
+        onOpenChange={setShowWalkerModal} 
+      />
+      <NearbyServicesModal 
+        open={showNearbyModal} 
+        onOpenChange={setShowNearbyModal} 
+      />
+      <UserSettingsModal 
+        open={showSettingsModal} 
+        onOpenChange={setShowSettingsModal} 
       />
     </div>
   );

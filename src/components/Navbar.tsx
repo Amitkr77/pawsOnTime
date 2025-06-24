@@ -1,9 +1,21 @@
 
 import { Button } from "@/components/ui/button";
 import { Heart, User, Bell } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const Navbar = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleGetStarted = () => {
+    navigate("/register");
+  };
+
+  const handleSignIn = () => {
+    navigate("/login");
+  };
+
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6">
@@ -17,15 +29,27 @@ const Navbar = () => {
             </span>
           </Link>
 
+          <div className="hidden md:flex items-center space-x-8">
+            <Link to="/" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Home
+            </Link>
+            <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Features
+            </a>
+            <a href="#testimonials" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Reviews
+            </a>
+            <a href="#contact" className="text-gray-600 hover:text-gray-900 transition-colors">
+              Contact
+            </a>
+          </div>
+
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="relative">
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                3
-              </span>
+            <Button variant="ghost" onClick={handleSignIn}>
+              Sign In
             </Button>
-            <Button variant="ghost" size="sm">
-              <User className="w-5 h-5" />
+            <Button onClick={handleGetStarted}>
+              Get Started
             </Button>
           </div>
         </div>

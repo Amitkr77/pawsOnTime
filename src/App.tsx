@@ -11,6 +11,8 @@ import Register from "./pages/Register";
 import PetParentDashboard from "./pages/PetParentDashboard";
 import DoctorDashboard from "./pages/DoctorDashboard";
 import WalkerDashboard from "./pages/WalkerDashboard";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,7 +31,8 @@ const App = () => (
           <Route path="/dashboard/pet-parent" element={<PetParentDashboard />} />
           <Route path="/dashboard/doctor" element={<DoctorDashboard />} />
           <Route path="/dashboard/walker" element={<WalkerDashboard />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsOfService />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
