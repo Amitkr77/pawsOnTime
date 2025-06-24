@@ -2,9 +2,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Heart, MapPin, Clock, Plus, Bell } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 
 const PetParentDashboard = () => {
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
   const upcomingTasks = [
     { title: "Vaccination Due", pet: "Buddy", date: "Tomorrow", type: "medical" },
     { title: "Grooming Appointment", pet: "Luna", date: "Dec 28", type: "grooming" },
@@ -12,11 +17,59 @@ const PetParentDashboard = () => {
   ];
 
   const quickActions = [
-    { title: "Schedule Care", icon: Calendar, description: "Set reminders for your pet", color: "from-blue-500 to-blue-600" },
-    { title: "Book Consultation", icon: Heart, description: "Connect with a vet", color: "from-red-500 to-red-600" },
-    { title: "Find Walker", icon: MapPin, description: "Book a pet walker", color: "from-green-500 to-green-600" },
-    { title: "Nearby Services", icon: Clock, description: "Find shops & clinics", color: "from-orange-500 to-orange-600" },
+    { 
+      title: "Schedule Care", 
+      icon: Calendar, 
+      description: "Set reminders for your pet", 
+      color: "from-blue-500 to-blue-600",
+      action: () => handleScheduleCare()
+    },
+    { 
+      title: "Book Consultation", 
+      icon: Heart, 
+      description: "Connect with a vet", 
+      color: "from-red-500 to-red-600",
+      action: () => handleBookConsultation()
+    },
+    { 
+      title: "Find Walker", 
+      icon: MapPin, 
+      description: "Book a pet walker", 
+      color: "from-green-500 to-green-600",
+      action: () => handleFindWalker()
+    },
+    { 
+      title: "Nearby Services", 
+      icon: Clock, 
+      description: "Find shops & clinics", 
+      color: "from-orange-500 to-orange-600",
+      action: () => handleNearbyServices()
+    },
   ];
+
+  const handleScheduleCare = () => {
+    toast({ title: "Opening scheduler...", description: "Setting up your pet care schedule" });
+  };
+
+  const handleBookConsultation = () => {
+    toast({ title: "Finding vets...", description: "Connecting you with available veterinarians" });
+  };
+
+  const handleFindWalker = () => {
+    toast({ title: "Searching walkers...", description: "Finding pet walkers in your area" });
+  };
+
+  const handleNearbyServices = () => {
+    toast({ title: "Locating services...", description: "Finding pet shops and clinics nearby" });
+  };
+
+  const handleViewTask = (task: any) => {
+    toast({ title: `Viewing ${task.title}`, description: `Details for ${task.pet}` });
+  };
+
+  const handleAddPet = () => {
+    toast({ title: "Add New Pet", description: "Opening pet registration form" });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -29,7 +82,7 @@ const PetParentDashboard = () => {
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            <Card>
+            <Card className="shadow-sm border-0">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Bell className="w-5 h-5" />
@@ -40,12 +93,12 @@ const PetParentDashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   {upcomingTasks.map((task, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-4 bg-white border rounded-xl hover:shadow-md transition-shadow">
                       <div>
                         <h3 className="font-medium text-gray-900">{task.title}</h3>
                         <p className="text-sm text-gray-600">{task.pet} • {task.date}</p>
                       </div>
-                      <Button size="sm" variant="outline">
+                      <Button size="sm" variant="outline" onClick={() => handleViewTask(task)}>
                         View
                       </Button>
                     </div>
@@ -54,7 +107,7 @@ const PetParentDashboard = () => {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-sm border-0">
               <CardHeader>
                 <CardTitle>Quick Actions</CardTitle>
                 <CardDescription>Get things done quickly</CardDescription>
@@ -62,7 +115,11 @@ const PetParentDashboard = () => {
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
                   {quickActions.map((action, index) => (
-                    <div key={index} className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
+                    <div 
+                      key={index} 
+                      className="group hover:shadow-lg transition-all duration-300 cursor-pointer"
+                      onClick={action.action}
+                    >
                       <div className="p-6 bg-white border rounded-xl">
                         <div className={`w-12 h-12 bg-gradient-to-r ${action.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                           <action.icon className="w-6 h-6 text-white" />
@@ -78,7 +135,7 @@ const PetParentDashboard = () => {
           </div>
 
           <div className="space-y-6">
-            <Card>
+            <Card className="shadow-sm border-0">
               <CardHeader>
                 <CardTitle>Your Pets</CardTitle>
                 <CardDescription>Manage your furry friends</CardDescription>
@@ -102,7 +159,7 @@ const PetParentDashboard = () => {
                     <p className="text-sm text-gray-600">Persian Cat, 2 years</p>
                   </div>
                 </div>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={handleAddPet}>
                   <Plus className="w-4 h-4 mr-2" />
                   Add New Pet
                 </Button>

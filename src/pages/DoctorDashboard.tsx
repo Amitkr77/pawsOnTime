@@ -2,14 +2,17 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, Star, Clock, FileText } from "lucide-react";
+import { Calendar, Users, Star, Clock, FileText, Video, MessageCircle } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import Navbar from "@/components/Navbar";
 
 const DoctorDashboard = () => {
+  const { toast } = useToast();
+
   const todayAppointments = [
-    { time: "10:00 AM", pet: "Buddy", owner: "John Smith", type: "Consultation", status: "upcoming" },
-    { time: "2:30 PM", pet: "Luna", owner: "Sarah Wilson", type: "Follow-up", status: "completed" },
-    { time: "4:00 PM", pet: "Max", owner: "Mike Johnson", type: "Emergency", status: "pending" },
+    { id: 1, time: "10:00 AM", pet: "Buddy", owner: "John Smith", type: "Consultation", status: "upcoming" },
+    { id: 2, time: "2:30 PM", pet: "Luna", owner: "Sarah Wilson", type: "Follow-up", status: "completed" },
+    { id: 3, time: "4:00 PM", pet: "Max", owner: "Mike Johnson", type: "Emergency", status: "pending" },
   ];
 
   const recentReviews = [
@@ -17,6 +20,34 @@ const DoctorDashboard = () => {
     { owner: "Sarah Wilson", rating: 5, comment: "Very professional and caring." },
     { owner: "Mike Johnson", rating: 4, comment: "Quick response and helpful advice." },
   ];
+
+  const handleViewAppointment = (appointment: any) => {
+    toast({ 
+      title: `Viewing appointment with ${appointment.pet}`, 
+      description: `${appointment.type} at ${appointment.time}` 
+    });
+  };
+
+  const handleStartConsultation = (appointment: any) => {
+    toast({ 
+      title: "Starting consultation", 
+      description: `Video call with ${appointment.owner}` 
+    });
+  };
+
+  const handleSendMessage = (appointment: any) => {
+    toast({ 
+      title: "Opening chat", 
+      description: `Messaging ${appointment.owner}` 
+    });
+  };
+
+  const handleUploadPrescription = (appointment: any) => {
+    toast({ 
+      title: "Upload prescription", 
+      description: `For ${appointment.pet}` 
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -28,7 +59,7 @@ const DoctorDashboard = () => {
         </div>
 
         <div className="grid lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card className="shadow-sm border-0">
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
@@ -42,7 +73,7 @@ const DoctorDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm border-0">
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
@@ -56,7 +87,7 @@ const DoctorDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm border-0">
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
@@ -70,7 +101,7 @@ const DoctorDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm border-0">
             <CardContent className="p-6">
               <div className="flex items-center space-x-4">
                 <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
@@ -86,7 +117,7 @@ const DoctorDashboard = () => {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          <Card>
+          <Card className="shadow-sm border-0">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Clock className="w-5 h-5" />
@@ -97,8 +128,8 @@ const DoctorDashboard = () => {
             <CardContent>
               <div className="space-y-4">
                 {todayAppointments.map((appointment, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg bg-white">
+                    <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-1">
                         <span className="font-medium">{appointment.time}</span>
                         <Badge variant={appointment.status === 'completed' ? 'default' : appointment.status === 'pending' ? 'secondary' : 'outline'}>
@@ -108,16 +139,31 @@ const DoctorDashboard = () => {
                       <p className="text-sm text-gray-600">{appointment.pet} • {appointment.owner}</p>
                       <p className="text-xs text-gray-500">{appointment.type}</p>
                     </div>
-                    <Button size="sm" variant="outline">
-                      View
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button size="sm" variant="outline" onClick={() => handleViewAppointment(appointment)}>
+                        View
+                      </Button>
+                      {appointment.status === 'upcoming' && (
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => handleStartConsultation(appointment)}>
+                            <Video className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => handleSendMessage(appointment)}>
+                            <MessageCircle className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" onClick={() => handleUploadPrescription(appointment)}>
+                            <FileText className="w-4 h-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-sm border-0">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Star className="w-5 h-5" />
