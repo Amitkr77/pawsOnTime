@@ -4,10 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Users, Star, Clock, FileText, Video, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
+import AppointmentModal from "@/components/AppointmentModal";
 
 const DoctorDashboard = () => {
   const { toast } = useToast();
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<any>(null);
 
   const todayAppointments = [
     { id: 1, time: "10:00 AM", pet: "Buddy", owner: "John Smith", type: "Consultation", status: "upcoming" },
@@ -22,10 +26,8 @@ const DoctorDashboard = () => {
   ];
 
   const handleViewAppointment = (appointment: any) => {
-    toast({ 
-      title: `Viewing appointment with ${appointment.pet}`, 
-      description: `${appointment.type} at ${appointment.time}` 
-    });
+    setSelectedAppointment(appointment);
+    setShowAppointmentModal(true);
   };
 
   const handleStartConsultation = (appointment: any) => {
@@ -191,6 +193,12 @@ const DoctorDashboard = () => {
           </Card>
         </div>
       </div>
+
+      <AppointmentModal 
+        open={showAppointmentModal} 
+        onOpenChange={setShowAppointmentModal} 
+        appointment={selectedAppointment}
+      />
     </div>
   );
 };

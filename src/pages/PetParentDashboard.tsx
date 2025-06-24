@@ -4,11 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Heart, MapPin, Clock, Plus, Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
+import AddPetModal from "@/components/AddPetModal";
+import TaskDetailsModal from "@/components/TaskDetailsModal";
 
 const PetParentDashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [showAddPetModal, setShowAddPetModal] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<any>(null);
 
   const upcomingTasks = [
     { title: "Vaccination Due", pet: "Buddy", date: "Tomorrow", type: "medical" },
@@ -48,27 +54,45 @@ const PetParentDashboard = () => {
   ];
 
   const handleScheduleCare = () => {
-    toast({ title: "Opening scheduler...", description: "Setting up your pet care schedule" });
+    toast({ 
+      title: "Schedule Care 📅", 
+      description: "Opening pet care scheduler..." 
+    });
+    // Here you would typically navigate to scheduler page
+    // navigate("/scheduler");
   };
 
   const handleBookConsultation = () => {
-    toast({ title: "Finding vets...", description: "Connecting you with available veterinarians" });
+    toast({ 
+      title: "Find Veterinarians 🩺", 
+      description: "Searching for available vets in your area..." 
+    });
+    // navigate("/consultation");
   };
 
   const handleFindWalker = () => {
-    toast({ title: "Searching walkers...", description: "Finding pet walkers in your area" });
+    toast({ 
+      title: "Find Pet Walker 🚶", 
+      description: "Looking for available pet walkers nearby..." 
+    });
+    // navigate("/walker");
   };
 
   const handleNearbyServices = () => {
-    toast({ title: "Locating services...", description: "Finding pet shops and clinics nearby" });
+    toast({ 
+      title: "Nearby Services 📍", 
+      description: "Finding pet shops and clinics in your area..." 
+    });
+    // navigate("/nearby");
   };
 
   const handleViewTask = (task: any) => {
-    toast({ title: `Viewing ${task.title}`, description: `Details for ${task.pet}` });
+    setSelectedTask(task);
+    setShowTaskModal(true);
   };
 
   const handleAddPet = () => {
-    toast({ title: "Add New Pet", description: "Opening pet registration form" });
+    setShowAddPetModal(true);
   };
 
   return (
@@ -168,6 +192,16 @@ const PetParentDashboard = () => {
           </div>
         </div>
       </div>
+
+      <AddPetModal 
+        open={showAddPetModal} 
+        onOpenChange={setShowAddPetModal} 
+      />
+      <TaskDetailsModal 
+        open={showTaskModal} 
+        onOpenChange={setShowTaskModal} 
+        task={selectedTask}
+      />
     </div>
   );
 };
