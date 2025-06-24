@@ -1,5 +1,10 @@
-
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { User, Bell, Shield, CreditCard, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import api from "@/lib/axios";
 
 interface UserSettingsModalProps {
   open: boolean;
@@ -18,33 +24,120 @@ interface UserSettingsModalProps {
 
 const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
   const { toast } = useToast();
-  const [profile, setProfile] = useState({
+  const [profile, setProfile] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    bio: string;
+    avatar: string; // ✅ add this line
+  }>({
     name: "John Smith",
     email: "john.smith@email.com",
     phone: "+1 (555) 123-4567",
     address: "123 Main Street, City, State 12345",
-    bio: "Loving pet parent with 2 wonderful pets"
+    bio: "Loving pet parent with 2 wonderful pets",
+    avatar: "", // ✅ initialize
   });
 
   const [notifications, setNotifications] = useState({
     emailReminders: true,
     pushNotifications: true,
     smsAlerts: false,
-    marketingEmails: false
+    marketingEmails: false,
   });
 
-  const handleSaveProfile = () => {
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully"
-    });
+  const handleSaveProfile = async () => {
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await api.put(
+        "/auth/update",
+        {
+          name: profile.name,
+          email: profile.email,
+          address: profile.address,
+          phoneNumber: profile.phone,
+          bio: profile.bio,
+          avatar: profile.avatar,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile information has been saved successfully",
+      });
+
+      onOpenChange(false);
+    } catch (err: any) {
+      toast({
+        title: "Update Failed",
+        description: err.response?.data?.msg || "Something went wrong",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleSaveNotifications = () => {
     toast({
       title: "Notification Settings Updated",
-      description: "Your notification preferences have been saved"
+      description: "Your notification preferences have been saved",
     });
+  };
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const user = JSON.parse(stored);
+      setProfile({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phoneNumber || "",
+        address: user.address || "",
+        bio: user.bio || "",
+        avatar: user.avatar || "",
+      });
+    }
+  }, []);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "your_upload_preset"); // replace
+    formData.append("cloud_name", "dbl9y4zkr"); // replace
+
+    try {
+      const res = await fetch(
+        "https://api.cloudinary.com/v1_1/your_cloud_name/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await res.json();
+      setProfile((prev) => ({ ...prev, avatar: data.secure_url }));
+      toast({
+        title: "Avatar Uploaded",
+        description: "Your profile photo has been updated.",
+      });
+    } catch {
+      toast({
+        title: "Upload Failed",
+        description: "Unable to upload avatar.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -71,59 +164,90 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
           <TabsContent value="profile" className="space-y-4 mt-4">
             <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
               <Avatar className="w-16 h-16">
-                <AvatarFallback className="text-lg">JS</AvatarFallback>
+                {profile.avatar ? (
+                  <img
+                    src={profile.avatar}
+                    alt="avatar"
+                    className="rounded-full object-cover"
+                  />
+                ) : (
+                  <AvatarFallback className="text-lg">JS</AvatarFallback>
+                )}
               </Avatar>
               <div>
-                <Button variant="outline" size="sm">
-                  <Camera className="w-4 h-4 mr-2" />
-                  Change Photo
-                </Button>
-                <p className="text-sm text-gray-600 mt-1">JPG, PNG or GIF. Max size 2MB</p>
+                <label htmlFor="avatar-upload">
+                  <Button variant="outline" size="sm" asChild>
+                    <span className="cursor-pointer">
+                      <Camera className="w-4 h-4 mr-2" />
+                      Change Photo
+                    </span>
+                  </Button>
+                </label>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="hidden"
+                />
+                <p className="text-sm text-gray-600 mt-1">
+                  JPG, PNG or GIF. Max size 2MB
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input 
-                  id="name" 
+                <Input
+                  id="name"
                   value={profile.name}
-                  onChange={(e) => setProfile({...profile, name: e.target.value})}
+                  onChange={(e) =>
+                    setProfile({ ...profile, name: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
+                <Input
+                  id="email"
                   type="email"
                   value={profile.email}
-                  onChange={(e) => setProfile({...profile, email: e.target.value})}
+                  onChange={(e) =>
+                    setProfile({ ...profile, email: e.target.value })
+                  }
                 />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
-                <Input 
-                  id="phone" 
+                <Input
+                  id="phone"
                   value={profile.phone}
-                  onChange={(e) => setProfile({...profile, phone: e.target.value})}
+                  onChange={(e) =>
+                    setProfile({ ...profile, phone: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
-                <Input 
-                  id="address" 
+                <Input
+                  id="address"
                   value={profile.address}
-                  onChange={(e) => setProfile({...profile, address: e.target.value})}
+                  onChange={(e) =>
+                    setProfile({ ...profile, address: e.target.value })
+                  }
                 />
               </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="bio">Bio</Label>
-              <Textarea 
-                id="bio" 
+              <Textarea
+                id="bio"
                 value={profile.bio}
-                onChange={(e) => setProfile({...profile, bio: e.target.value})}
+                onChange={(e) =>
+                  setProfile({ ...profile, bio: e.target.value })
+                }
                 rows={3}
               />
             </div>
@@ -135,41 +259,66 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium">Email Reminders</h4>
-                  <p className="text-sm text-gray-600">Get reminded about upcoming appointments</p>
+                  <p className="text-sm text-gray-600">
+                    Get reminded about upcoming appointments
+                  </p>
                 </div>
-                <Switch 
+                <Switch
                   checked={notifications.emailReminders}
-                  onCheckedChange={(checked) => setNotifications({...notifications, emailReminders: checked})}
+                  onCheckedChange={(checked) =>
+                    setNotifications({
+                      ...notifications,
+                      emailReminders: checked,
+                    })
+                  }
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium">Push Notifications</h4>
-                  <p className="text-sm text-gray-600">Receive notifications in the app</p>
+                  <p className="text-sm text-gray-600">
+                    Receive notifications in the app
+                  </p>
                 </div>
-                <Switch 
+                <Switch
                   checked={notifications.pushNotifications}
-                  onCheckedChange={(checked) => setNotifications({...notifications, pushNotifications: checked})}
+                  onCheckedChange={(checked) =>
+                    setNotifications({
+                      ...notifications,
+                      pushNotifications: checked,
+                    })
+                  }
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium">SMS Alerts</h4>
-                  <p className="text-sm text-gray-600">Get text messages for urgent updates</p>
+                  <p className="text-sm text-gray-600">
+                    Get text messages for urgent updates
+                  </p>
                 </div>
-                <Switch 
+                <Switch
                   checked={notifications.smsAlerts}
-                  onCheckedChange={(checked) => setNotifications({...notifications, smsAlerts: checked})}
+                  onCheckedChange={(checked) =>
+                    setNotifications({ ...notifications, smsAlerts: checked })
+                  }
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="font-medium">Marketing Emails</h4>
-                  <p className="text-sm text-gray-600">Receive promotional content and tips</p>
+                  <p className="text-sm text-gray-600">
+                    Receive promotional content and tips
+                  </p>
                 </div>
-                <Switch 
+                <Switch
                   checked={notifications.marketingEmails}
-                  onCheckedChange={(checked) => setNotifications({...notifications, marketingEmails: checked})}
+                  onCheckedChange={(checked) =>
+                    setNotifications({
+                      ...notifications,
+                      marketingEmails: checked,
+                    })
+                  }
                 />
               </div>
             </div>
@@ -197,7 +346,9 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
             </div>
             <div className="border-t pt-4">
               <h4 className="font-medium mb-2">Two-Factor Authentication</h4>
-              <p className="text-sm text-gray-600 mb-3">Add an extra layer of security to your account</p>
+              <p className="text-sm text-gray-600 mb-3">
+                Add an extra layer of security to your account
+              </p>
               <Button variant="outline">Enable 2FA</Button>
             </div>
           </TabsContent>
@@ -206,8 +357,12 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
             <div className="space-y-4">
               <div className="p-4 border rounded-lg">
                 <h4 className="font-medium mb-2">Current Plan</h4>
-                <p className="text-sm text-gray-600">Free Plan - Basic features included</p>
-                <Button variant="outline" className="mt-2">Upgrade Plan</Button>
+                <p className="text-sm text-gray-600">
+                  Free Plan - Basic features included
+                </p>
+                <Button variant="outline" className="mt-2">
+                  Upgrade Plan
+                </Button>
               </div>
               <div className="space-y-2">
                 <h4 className="font-medium">Payment Method</h4>
@@ -216,7 +371,9 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
                     <CreditCard className="w-5 h-5" />
                     <span>•••• •••• •••• 1234</span>
                   </div>
-                  <Button variant="outline" size="sm">Edit</Button>
+                  <Button variant="outline" size="sm">
+                    Edit
+                  </Button>
                 </div>
               </div>
               <Button variant="outline">Add Payment Method</Button>

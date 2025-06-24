@@ -1,11 +1,24 @@
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Heart, MapPin, Clock, Plus, Bell, User, LogOut } from "lucide-react";
+import {
+  Calendar,
+  Heart,
+  MapPin,
+  Clock,
+  Plus,
+  Bell,
+  User,
+  LogOut,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
-import Navbar from "@/components/Navbar";
+import { useEffect, useState } from "react";
 import AddPetModal from "@/components/AddPetModal";
 import TaskDetailsModal from "@/components/TaskDetailsModal";
 import ScheduleCareModal from "@/components/ScheduleCareModal";
@@ -33,40 +46,70 @@ const PetParentDashboard = () => {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
 
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+  const [userName, setUserName] = useState("");
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserName(user.name);
+    }
+
+    if (!user.address || !user.bio || !user.phoneNumber) {
+      toast({
+        title: "Profile Incomplete",
+        description: "Please complete your profile to unlock full access.",
+        variant: "default",
+      });
+    }
+  }, []);
+
   const upcomingTasks = [
-    { title: "Vaccination Due", pet: "Buddy", date: "Tomorrow", type: "medical" },
-    { title: "Grooming Appointment", pet: "Luna", date: "Dec 28", type: "grooming" },
+    {
+      title: "Vaccination Due",
+      pet: "Buddy",
+      date: "Tomorrow",
+      type: "medical",
+    },
+    {
+      title: "Grooming Appointment",
+      pet: "Luna",
+      date: "Dec 28",
+      type: "grooming",
+    },
     { title: "Walker Booking", pet: "Max", date: "Today 5 PM", type: "walk" },
   ];
 
   const quickActions = [
-    { 
-      title: "Schedule Care", 
-      icon: Calendar, 
-      description: "Set reminders for your pet", 
+    {
+      title: "Schedule Care",
+      icon: Calendar,
+      description: "Set reminders for your pet",
       color: "from-blue-500 to-blue-600",
-      action: () => setShowScheduleCareModal(true)
+      action: () => setShowScheduleCareModal(true),
     },
-    { 
-      title: "Book Consultation", 
-      icon: Heart, 
-      description: "Connect with a vet", 
+    {
+      title: "Book Consultation",
+      icon: Heart,
+      description: "Connect with a vet",
       color: "from-red-500 to-red-600",
-      action: () => setShowConsultationModal(true)
+      action: () => setShowConsultationModal(true),
     },
-    { 
-      title: "Find Walker", 
-      icon: MapPin, 
-      description: "Book a pet walker", 
+    {
+      title: "Find Walker",
+      icon: MapPin,
+      description: "Book a pet walker",
       color: "from-green-500 to-green-600",
-      action: () => setShowWalkerModal(true)
+      action: () => setShowWalkerModal(true),
     },
-    { 
-      title: "Nearby Services", 
-      icon: Clock, 
-      description: "Find shops & clinics", 
+    {
+      title: "Nearby Services",
+      icon: Clock,
+      description: "Find shops & clinics",
       color: "from-orange-500 to-orange-600",
-      action: () => setShowNearbyModal(true)
+      action: () => setShowNearbyModal(true),
     },
   ];
 
@@ -80,9 +123,9 @@ const PetParentDashboard = () => {
   };
 
   const handleLogout = () => {
-    toast({ 
-      title: "Logged Out", 
-      description: "You have been successfully logged out" 
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out",
     });
     navigate("/");
   };
@@ -133,8 +176,12 @@ const PetParentDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, John! 🐾</h1>
-          <p className="text-gray-600">Here's what's happening with your pets today</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, {userName}! 🐾
+          </h1>
+          <p className="text-gray-600">
+            Here's what's happening with your pets today
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -145,17 +192,30 @@ const PetParentDashboard = () => {
                   <Bell className="w-5 h-5" />
                   <span>Upcoming Tasks</span>
                 </CardTitle>
-                <CardDescription>Don't miss these important pet care activities</CardDescription>
+                <CardDescription>
+                  Don't miss these important pet care activities
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {upcomingTasks.map((task, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-white border rounded-xl hover:shadow-md transition-shadow">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-4 bg-white border rounded-xl hover:shadow-md transition-shadow"
+                    >
                       <div>
-                        <h3 className="font-medium text-gray-900">{task.title}</h3>
-                        <p className="text-sm text-gray-600">{task.pet} • {task.date}</p>
+                        <h3 className="font-medium text-gray-900">
+                          {task.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {task.pet} • {task.date}
+                        </p>
                       </div>
-                      <Button size="sm" variant="outline" onClick={() => handleViewTask(task)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleViewTask(task)}
+                      >
                         View
                       </Button>
                     </div>
@@ -172,17 +232,23 @@ const PetParentDashboard = () => {
               <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
                   {quickActions.map((action, index) => (
-                    <div 
-                      key={index} 
+                    <div
+                      key={index}
                       className="group hover:shadow-lg transition-all duration-300 cursor-pointer"
                       onClick={action.action}
                     >
                       <div className="p-6 bg-white border rounded-xl">
-                        <div className={`w-12 h-12 bg-gradient-to-r ${action.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                        <div
+                          className={`w-12 h-12 bg-gradient-to-r ${action.color} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}
+                        >
                           <action.icon className="w-6 h-6 text-white" />
                         </div>
-                        <h3 className="font-semibold text-gray-900 mb-2">{action.title}</h3>
-                        <p className="text-sm text-gray-600">{action.description}</p>
+                        <h3 className="font-semibold text-gray-900 mb-2">
+                          {action.title}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {action.description}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -204,7 +270,9 @@ const PetParentDashboard = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium">Buddy</h3>
-                    <p className="text-sm text-gray-600">Golden Retriever, 3 years</p>
+                    <p className="text-sm text-gray-600">
+                      Golden Retriever, 3 years
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-lg">
@@ -213,10 +281,16 @@ const PetParentDashboard = () => {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium">Luna</h3>
-                    <p className="text-sm text-gray-600">Persian Cat, 2 years</p>
+                    <p className="text-sm text-gray-600">
+                      Persian Cat, 2 years
+                    </p>
                   </div>
                 </div>
-                <Button className="w-full" variant="outline" onClick={handleAddPet}>
+                <Button
+                  className="w-full"
+                  variant="outline"
+                  onClick={handleAddPet}
+                >
                   <Plus className="w-4 h-4 mr-2" />
                   Add New Pet
                 </Button>
@@ -226,34 +300,31 @@ const PetParentDashboard = () => {
         </div>
       </div>
 
-      <AddPetModal 
-        open={showAddPetModal} 
-        onOpenChange={setShowAddPetModal} 
-      />
-      <TaskDetailsModal 
-        open={showTaskModal} 
-        onOpenChange={setShowTaskModal} 
+      <AddPetModal open={showAddPetModal} onOpenChange={setShowAddPetModal} />
+      <TaskDetailsModal
+        open={showTaskModal}
+        onOpenChange={setShowTaskModal}
         task={selectedTask}
       />
-      <ScheduleCareModal 
-        open={showScheduleCareModal} 
-        onOpenChange={setShowScheduleCareModal} 
+      <ScheduleCareModal
+        open={showScheduleCareModal}
+        onOpenChange={setShowScheduleCareModal}
       />
-      <BookConsultationModal 
-        open={showConsultationModal} 
-        onOpenChange={setShowConsultationModal} 
+      <BookConsultationModal
+        open={showConsultationModal}
+        onOpenChange={setShowConsultationModal}
       />
-      <FindWalkerModal 
-        open={showWalkerModal} 
-        onOpenChange={setShowWalkerModal} 
+      <FindWalkerModal
+        open={showWalkerModal}
+        onOpenChange={setShowWalkerModal}
       />
-      <NearbyServicesModal 
-        open={showNearbyModal} 
-        onOpenChange={setShowNearbyModal} 
+      <NearbyServicesModal
+        open={showNearbyModal}
+        onOpenChange={setShowNearbyModal}
       />
-      <UserSettingsModal 
-        open={showSettingsModal} 
-        onOpenChange={setShowSettingsModal} 
+      <UserSettingsModal
+        open={showSettingsModal}
+        onOpenChange={setShowSettingsModal}
       />
     </div>
   );

@@ -1,44 +1,56 @@
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [credentials, setCredentials] = useState({
     email: "",
-    password: ""
+    password: "",
   });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Simple demo authentication
-    if (credentials.email && credentials.password) {
-      toast({
-        title: "Login Successful! 🎉",
-        description: "Welcome back to Paws On Time"
-      });
-      
-      // Route based on email domain for demo purposes
-      if (credentials.email.includes("doctor") || credentials.email.includes("vet")) {
-        navigate("/dashboard/doctor");
-      } else if (credentials.email.includes("walker")) {
-        navigate("/dashboard/walker");
-      } else {
-        navigate("/dashboard/pet-parent");
+
+    try {
+      const res = await api.post("/auth/login", credentials);
+
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("user", JSON.stringify(res.data.user));
+
+        toast({
+          title: "Login Successful! 🎉",
+          description: `Welcome back, ${res.data.user.name}`,
+        });
+
+        const role = res.data.user.role;
+        if (role === "doctor") {
+          navigate("/dashboard/doctor");
+        } else if (role === "walker") {
+          navigate("/dashboard/walker");
+        } else {
+          navigate("/dashboard/pet-parent");
+        }
       }
-    } else {
+    } catch (err: any) {
       toast({
         title: "Login Failed",
-        description: "Please enter valid credentials",
-        variant: "destructive"
+        description: err.response?.data?.msg || "Invalid credentials",
+        variant: "destructive",
       });
     }
   };
@@ -61,42 +73,50 @@ const Login = () => {
         <Card>
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardDescription>
+              Enter your credentials to access your account
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
+                <Input
+                  id="email"
+                  type="email"
                   placeholder="your@email.com"
                   value={credentials.email}
-                  onChange={(e) => setCredentials({...credentials, email: e.target.value})}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, email: e.target.value })
+                  }
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
+                <Input
+                  id="password"
+                  type="password"
                   placeholder="••••••••"
                   value={credentials.password}
-                  onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                  onChange={(e) =>
+                    setCredentials({ ...credentials, password: e.target.value })
+                  }
                   required
                 />
               </div>
-              <Button 
+              <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
               >
                 Sign In
               </Button>
             </form>
-            
+
             <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium mb-2">Demo Accounts:</p>
+              <p className="text-sm text-blue-800 font-medium mb-2">
+                Demo Accounts:
+              </p>
               <div className="text-xs text-blue-700 space-y-1">
                 <p>Pet Parent: parent@demo.com</p>
                 <p>Doctor: doctor@demo.com</p>
@@ -104,7 +124,7 @@ const Login = () => {
                 <p>Password: any password</p>
               </div>
             </div>
-            
+
             <div className="text-center text-sm text-gray-600 mt-4">
               Don't have an account?{" "}
               <Link to="/register" className="text-blue-600 hover:underline">

@@ -1,13 +1,25 @@
-
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Heart, User, Stethoscope, Dog } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -16,31 +28,61 @@ const Register = () => {
     name: "",
     email: "",
     password: "",
-    role: ""
+    role: "",
   });
 
   const roleOptions = [
-    { value: "pet-parent", label: "Pet Parent", icon: User, description: "Manage your pet's care" },
-    { value: "doctor", label: "Veterinary Doctor", icon: Stethoscope, description: "Provide medical consultation" },
-    { value: "walker", label: "Pet Walker", icon: Dog, description: "Offer walking services" },
+    {
+      value: "pet-parent",
+      label: "Pet Parent",
+      icon: User,
+      description: "Manage your pet's care",
+    },
+    {
+      value: "doctor",
+      label: "Veterinary Doctor",
+      icon: Stethoscope,
+      description: "Provide medical consultation",
+    },
+    {
+      value: "walker",
+      label: "Pet Walker",
+      icon: Dog,
+      description: "Offer walking services",
+    },
   ];
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (formData.name && formData.email && formData.password && formData.role) {
-      toast({
-        title: "Account Created! 🎉",
-        description: "Welcome to Paws On Time! You can now sign in."
-      });
-      
-      // Redirect to login
-      navigate("/login");
+      try {
+        const res = await api.post("/auth/register", {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role.replace("-", "_"), // convert `pet-parent` to `pet_parent`
+        });
+
+        if (res.status === 201) {
+          toast({
+            title: "Account Created! 🎉",
+            description: "Welcome to Paws On Time! You can now sign in.",
+          });
+          navigate("/login");
+        }
+      } catch (err: any) {
+        toast({
+          title: "Registration Failed",
+          description: err.response?.data?.msg || "Something went wrong",
+          variant: "destructive",
+        });
+      }
     } else {
       toast({
         title: "Registration Failed",
         description: "Please fill in all required fields",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -63,45 +105,58 @@ const Register = () => {
         <Card>
           <CardHeader>
             <CardTitle>Create Account</CardTitle>
-            <CardDescription>Sign up to get started with pet care management</CardDescription>
+            <CardDescription>
+              Sign up to get started with pet care management
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
-                <Input 
-                  id="name" 
+                <Input
+                  id="name"
                   placeholder="John Doe"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
+                <Input
+                  id="email"
+                  type="email"
                   placeholder="your@email.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
+                <Input
+                  id="password"
+                  type="password"
                   placeholder="••••••••"
                   value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">I am a...</Label>
-                <Select value={formData.role} onValueChange={(value) => setFormData({...formData, role: value})}>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, role: value })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select your role" />
                   </SelectTrigger>
@@ -112,7 +167,9 @@ const Register = () => {
                           <role.icon className="w-4 h-4" />
                           <div>
                             <div className="font-medium">{role.label}</div>
-                            <div className="text-xs text-gray-500">{role.description}</div>
+                            <div className="text-xs text-gray-500">
+                              {role.description}
+                            </div>
                           </div>
                         </div>
                       </SelectItem>
@@ -120,7 +177,7 @@ const Register = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <Button 
+              <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
               >
