@@ -1,6 +1,6 @@
-
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Calendar, Heart, MapPin } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   return (
@@ -18,11 +18,11 @@ const Hero = () => {
         </div>
         
         <div className="flex items-center space-x-4">
-          <Button variant="ghost" className="text-gray-700 hover:text-blue-600">
-            Login
+          <Button variant="ghost" className="text-gray-700 hover:text-blue-600" asChild>
+            <Link to="/login">Login</Link>
           </Button>
-          <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg">
-            Get Started
+          <Button className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg" asChild>
+            <Link to="/register">Get Started</Link>
           </Button>
         </div>
       </nav>
@@ -46,9 +46,11 @@ const Hero = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg group">
-                Start Your Journey
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg group" asChild>
+                <Link to="/register">
+                  Start Your Journey
+                  <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-300 hover:bg-blue-50">
                 Watch Demo
