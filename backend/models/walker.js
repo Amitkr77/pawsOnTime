@@ -29,7 +29,7 @@ const walkerSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ['requested', 'accepted', 'completed'],
-      default: 'requested', // Default status is 'requested'
+      default: 'requested', 
     },
   },
   { timestamps: true }

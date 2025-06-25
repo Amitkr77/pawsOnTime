@@ -7,6 +7,7 @@ import consultRoutes from './routes/consultRoutes.js'
 import petRoutes from './routes/petRoutes.js';
 import schedulerRoutes from './routes/scheduleRoutes.js';
 import walkerRoutes from './routes/walkerRoutes.js';
+import userRoutes from './routes/userRoutes.js'
 
 dotenv.config();
 const app = express();
@@ -25,6 +26,7 @@ app.use('/api/consult', consultRoutes);
 app.use('/api/pets', petRoutes);
 app.use('/api/schedule', schedulerRoutes);
 app.use('/api/walker', walkerRoutes);
+app.use("/api/users", userRoutes);
 
 
 

@@ -1,12 +1,24 @@
-
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 interface AddPetModalProps {
   open: boolean;
@@ -22,25 +34,58 @@ const AddPetModal = ({ open, onOpenChange }: AddPetModalProps) => {
     age: "",
     weight: "",
     gender: "",
-    notes: ""
+    notes: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Pet Added Successfully! 🐾",
-      description: `${formData.name} has been added to your pets.`
-    });
-    onOpenChange(false);
-    setFormData({
-      name: "",
-      type: "",
-      breed: "",
-      age: "",
-      weight: "",
-      gender: "",
-      notes: ""
-    });
+
+    const token = localStorage.getItem("token");
+
+    try {
+      await api.post(
+        "/pets",
+        {
+          name: formData.name,
+          type: formData.type,
+          breed: formData.breed,
+          age: Number(formData.age), // age as number
+          weight: formData.weight,
+          gender: formData.gender,
+          medicalNotes: formData.notes,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast({
+        title: "Pet Added Successfully! 🐾",
+        description: `${formData.name} has been added to your pets.`,
+      });
+
+      // reset UI
+      setFormData({
+        name: "",
+        type: "",
+        breed: "",
+        age: "",
+        weight: "",
+        gender: "",
+        notes: "",
+      });
+      onOpenChange(false);
+    } catch (err: any) {
+      console.log(err);
+      
+      toast({
+        title: "Failed to Add Pet",
+        description: err.response?.data?.msg || "Something went wrong",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -49,7 +94,8 @@ const AddPetModal = ({ open, onOpenChange }: AddPetModalProps) => {
         <DialogHeader>
           <DialogTitle>Add New Pet</DialogTitle>
           <DialogDescription>
-            Add your furry friend's details to get started with personalized care.
+            Add your furry friend's details to get started with personalized
+            care.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -59,14 +105,21 @@ const AddPetModal = ({ open, onOpenChange }: AddPetModalProps) => {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 placeholder="Buddy"
                 required
               />
             </div>
             <div>
               <Label htmlFor="type">Pet Type</Label>
-              <Select value={formData.type} onValueChange={(value) => setFormData({...formData, type: value})}>
+              <Select
+                value={formData.type}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, type: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
@@ -85,13 +138,20 @@ const AddPetModal = ({ open, onOpenChange }: AddPetModalProps) => {
               <Input
                 id="breed"
                 value={formData.breed}
-                onChange={(e) => setFormData({...formData, breed: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, breed: e.target.value })
+                }
                 placeholder="Golden Retriever"
               />
             </div>
             <div>
               <Label htmlFor="gender">Gender</Label>
-              <Select value={formData.gender} onValueChange={(value) => setFormData({...formData, gender: value})}>
+              <Select
+                value={formData.gender}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, gender: value })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
@@ -109,7 +169,9 @@ const AddPetModal = ({ open, onOpenChange }: AddPetModalProps) => {
                 id="age"
                 type="number"
                 value={formData.age}
-                onChange={(e) => setFormData({...formData, age: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, age: e.target.value })
+                }
                 placeholder="3"
               />
             </div>
@@ -119,7 +181,9 @@ const AddPetModal = ({ open, onOpenChange }: AddPetModalProps) => {
                 id="weight"
                 type="number"
                 value={formData.weight}
-                onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, weight: e.target.value })
+                }
                 placeholder="65"
               />
             </div>
@@ -129,13 +193,19 @@ const AddPetModal = ({ open, onOpenChange }: AddPetModalProps) => {
             <Textarea
               id="notes"
               value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
               placeholder="Any special care instructions or medical conditions..."
               rows={3}
             />
           </div>
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit">Add Pet</Button>

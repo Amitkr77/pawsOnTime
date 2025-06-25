@@ -52,6 +52,7 @@ export const login = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        _id : user._id
       }
     });
   } catch (err) {
@@ -116,3 +117,24 @@ export const updatePassword = async (req, res) => {
     res.status(500).json({ msg: "Failed to update password", err });
   }
 };
+
+export const getUserDetails = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select("-password")
+      .populate({
+        path: "pets",
+        populate: [
+          { path: "schedules" },
+          { path: "consultations", populate: { path: "doctor", select: "name email" } },
+          { path: "walkRequests", populate: { path: "walker", select: "name email" } }
+        ]
+      });
+
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ msg: "Failed to fetch user details", err });
+  }
+}

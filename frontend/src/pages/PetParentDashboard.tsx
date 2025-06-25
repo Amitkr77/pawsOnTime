@@ -33,6 +33,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import api from "@/lib/axios";
+import { Loader2 } from "lucide-react";
 
 const PetParentDashboard = () => {
   const { toast } = useToast();
@@ -45,6 +47,8 @@ const PetParentDashboard = () => {
   const [showNearbyModal, setShowNearbyModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [selectedTask, setSelectedTask] = useState<any>(null);
+  const [pets, setPets] = useState<any[]>([]);
+  const [loadingPets, setLoadingPets] = useState(true);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -64,6 +68,34 @@ const PetParentDashboard = () => {
         variant: "default",
       });
     }
+  }, []);
+
+  useEffect(() => {
+    const fetchPets = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        const token = localStorage.getItem("token");
+
+        if (!storedUser || !token) return;
+
+        const { _id } = JSON.parse(storedUser);
+        const res = await api.get(`/users/${_id}/details`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setPets(res.data.pets || []);
+      } catch (err) {
+        toast({
+          title: "Failed to load pets",
+          description: "We couldn’t fetch your pets from the server.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingPets(false);
+      }
+    };
+
+    fetchPets();
   }, []);
 
   const upcomingTasks = [
@@ -264,28 +296,42 @@ const PetParentDashboard = () => {
                 <CardDescription>Manage your furry friends</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg">
-                  <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center">
-                    🐕
+                {loadingPets && (
+                  <div className="flex justify-center py-6">
+                    <Loader2 className="animate-spin w-6 h-6 text-gray-500" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium">Buddy</h3>
-                    <p className="text-sm text-gray-600">
-                      Golden Retriever, 3 years
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 p-4 bg-orange-50 rounded-lg">
-                  <div className="w-12 h-12 bg-orange-200 rounded-full flex items-center justify-center">
-                    🐱
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium">Luna</h3>
-                    <p className="text-sm text-gray-600">
-                      Persian Cat, 2 years
-                    </p>
-                  </div>
-                </div>
+                )}
+
+                {!loadingPets && pets.length === 0 && (
+                  <p className="text-sm text-gray-600 text-center">
+                    You haven’t added any pets yet.
+                  </p>
+                )}
+
+                {!loadingPets &&
+                  pets.map((pet) => (
+                    <div
+                      key={pet._id}
+                      className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg hover:shadow-sm transition"
+                    >
+                      <div className="w-12 h-12 bg-blue-200 rounded-full flex items-center justify-center text-xl">
+                        {pet.type === "dog"
+                          ? "🐕"
+                          : pet.type === "cat"
+                          ? "🐱"
+                          : pet.type === "bird"
+                          ? "🦜"
+                          : "🐾"}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium">{pet.name}</h3>
+                        <p className="text-sm text-gray-600">
+                          {pet.breed || "Unknown breed"}, {pet.age || "N/A"} yrs
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+
                 <Button
                   className="w-full"
                   variant="outline"
