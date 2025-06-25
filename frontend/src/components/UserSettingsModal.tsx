@@ -12,7 +12,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { User, Bell, Shield, CreditCard, Camera } from "lucide-react";
+import {
+  User,
+  Bell,
+  Shield,
+  CreditCard,
+  Camera,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import api from "@/lib/axios";
@@ -24,20 +32,28 @@ interface UserSettingsModalProps {
 
 const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
   const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [profile, setProfile] = useState<{
     name: string;
     email: string;
     phone: string;
     address: string;
     bio: string;
-    avatar: string; // ✅ add this line
+    avatar: string;
   }>({
     name: "John Smith",
     email: "john.smith@email.com",
     phone: "+1 (555) 123-4567",
     address: "123 Main Street, City, State 12345",
     bio: "Loving pet parent with 2 wonderful pets",
-    avatar: "", // ✅ initialize
+    avatar: "",
   });
 
   const [notifications, setNotifications] = useState({
@@ -48,6 +64,7 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
   });
 
   const handleSaveProfile = async () => {
+    setLoading(true);
     const token = localStorage.getItem("token");
 
     try {
@@ -83,6 +100,7 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
         variant: "destructive",
       });
     }
+    setLoading(false);
   };
 
   const handleSaveNotifications = () => {
@@ -113,28 +131,96 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
 
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("upload_preset", "your_upload_preset"); // replace
-    formData.append("cloud_name", "dbl9y4zkr"); // replace
+    formData.append("cloud_name", "dbl9y4zkr"); // Your cloud name
+    formData.append("upload_preset", "upload-preset "); // No preset used (you can leave this blank or set it to null)
+
+    // Set other custom parameters directly
+    formData.append("public_id", "user_avatar"); // Set custom public_id if needed
+    formData.append("folder", "avatars/"); // Set folder for organization
 
     try {
       const res = await fetch(
-        "https://api.cloudinary.com/v1_1/your_cloud_name/image/upload",
+        "https://api.cloudinary.com/v1_1/dbl9y4zkr/image/upload",
         {
           method: "POST",
           body: formData,
         }
       );
-
       const data = await res.json();
-      setProfile((prev) => ({ ...prev, avatar: data.secure_url }));
-      toast({
-        title: "Avatar Uploaded",
-        description: "Your profile photo has been updated.",
-      });
-    } catch {
+      console.log(data);
+
+      if (res.ok) {
+        setProfile((prev) => ({ ...prev, avatar: data.secure_url }));
+        toast({
+          title: "Avatar Uploaded",
+          description: "Your profile photo has been updated.",
+          // status: "success",
+        });
+      } else {
+        throw new Error("Upload failed");
+      }
+    } catch (err) {
+      console.error(err);
       toast({
         title: "Upload Failed",
         description: "Unable to upload avatar.",
+        // status: "error",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    console.log("update in process");
+
+    const { currentPassword, newPassword, confirmPassword } = passwordData;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return toast({
+        title: "Missing Fields",
+        description: "All password fields are required.",
+        variant: "destructive",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return toast({
+        title: "Password Mismatch",
+        description: "New passwords do not match.",
+        variant: "destructive",
+      });
+    }
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await api.put(
+        "/auth/update-password",
+        {
+          currentPassword,
+          newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast({
+        title: "Password Updated",
+        description: res.data.msg || "Your password has been changed.",
+      });
+
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Update Failed",
+        description: err.response?.data?.msg || "Something went wrong",
         variant: "destructive",
       });
     }
@@ -142,7 +228,7 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[600px] h-[90vh] overflow-y-auto ">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <User className="w-5 h-5 text-blue-500" />
@@ -153,12 +239,12 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="profile" className="w-full h-[60vh]">
+          <TabsList className="grid w-full grid-cols-3 mb-8">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
+            {/* <TabsTrigger value="billing">Billing</TabsTrigger> */}
           </TabsList>
 
           <TabsContent value="profile" className="space-y-4 mt-4">
@@ -171,7 +257,14 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
                     className="rounded-full object-cover"
                   />
                 ) : (
-                  <AvatarFallback className="text-lg">JS</AvatarFallback>
+                  <AvatarFallback className="text-lg">
+                    {profile.name
+                      ? profile.name
+                          .split(" ")
+                          .map((word) => word[0])
+                          .join("")
+                      : "U"}
+                  </AvatarFallback>
                 )}
               </Avatar>
               <div>
@@ -251,7 +344,10 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
                 rows={3}
               />
             </div>
-            <Button onClick={handleSaveProfile}>Save Profile</Button>
+            <Button onClick={handleSaveProfile}>
+              {" "}
+              {loading ? "Saving..." : "Save Profile"}
+            </Button>
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-4 mt-4">
@@ -328,19 +424,93 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
           <TabsContent value="security" className="space-y-4 mt-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
+                <Label
+                  htmlFor="current-password"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Current Password
+                </Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  value={passwordData.currentPassword}
+                  onChange={(e) =>
+                    setPasswordData({
+                      ...passwordData,
+                      currentPassword: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                  placeholder="Enter your previous password"
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
+                <Label
+                  htmlFor="new-password"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  New Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="new-password"
+                    type={showPassword ? "text" : "password"}
+                    value={passwordData.newPassword}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        newPassword: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                    placeholder="Enter your new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input id="confirm-password" type="password" />
+                <Label
+                  htmlFor="confirm-password"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Confirm New Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="confirm-password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={passwordData.confirmPassword}
+                    onChange={(e) =>
+                      setPasswordData({
+                        ...passwordData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
+                    className="w-full px-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                    placeholder="Confirm your new password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
               </div>
-              <Button>
-                <Shield className="w-4 h-4 mr-2" />
+              <Button onClick={handlePasswordUpdate}>
+                <Shield className="w-4 h-4 mr-2" fill="white" />
                 Update Password
               </Button>
             </div>
@@ -349,11 +519,13 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
               <p className="text-sm text-gray-600 mb-3">
                 Add an extra layer of security to your account
               </p>
-              <Button variant="outline">Enable 2FA</Button>
+              <Button variant="outline" className=" cursor-not-allowed">
+                Enable 2FA
+              </Button>
             </div>
           </TabsContent>
 
-          <TabsContent value="billing" className="space-y-4 mt-4">
+          {/* <TabsContent value="billing" className="space-y-4 mt-4">
             <div className="space-y-4">
               <div className="p-4 border rounded-lg">
                 <h4 className="font-medium mb-2">Current Plan</h4>
@@ -378,7 +550,7 @@ const UserSettingsModal = ({ open, onOpenChange }: UserSettingsModalProps) => {
               </div>
               <Button variant="outline">Add Payment Method</Button>
             </div>
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
 
         <div className="flex justify-end space-x-2">

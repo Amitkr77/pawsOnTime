@@ -52,9 +52,9 @@ const Hero = () => {
                   <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-300 hover:bg-blue-50">
+              {/* <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-blue-300 hover:bg-blue-50">
                 Watch Demo
-              </Button>
+              </Button> */}
             </div>
             
             <div className="flex items-center space-x-8 pt-4 animate-fade-in">

@@ -61,7 +61,7 @@ const Register = () => {
           name: formData.name,
           email: formData.email,
           password: formData.password,
-          role: formData.role.replace("-", "_"), // convert `pet-parent` to `pet_parent`
+          role: formData.role.replace("-", "_"), 
         });
 
         if (res.status === 201) {
