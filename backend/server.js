@@ -14,7 +14,7 @@ const app = express();
 connectDB();
 
 app.use(cors({
-    origin: "http://localhost:8080",
+    origin: "https://paws-on-time.vercel.app",
     credentials: true
 }));
 app.use(express.json());
