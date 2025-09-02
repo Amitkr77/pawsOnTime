@@ -33,6 +33,11 @@ app.get('/', (req, res) => {
     res.send('Server is running!');
 });
 
+app.get('/sunno', (req, res) => {
+    res.send('meine sunn liya!');
+});
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
